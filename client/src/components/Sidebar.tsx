@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Message, Project, Version } from '../types'
 import { BotIcon, EyeIcon, Loader2Icon, SendIcon, UserIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -9,9 +9,10 @@ import { toast } from 'sonner'
 interface SidebarProps {
   isMenuOpen: boolean
   project: Project
-  setProject: (project: Project) => void
+  setProject: React.Dispatch<React.SetStateAction<Project | null>>
   isGenerating: boolean
-  setIsGenerating: (isGenerating: boolean) => void
+  setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>
+  togglePublish: () => Promise<void>
 }
 
 const Sidebar = ({
@@ -26,9 +27,9 @@ const Sidebar = ({
 
   const fetchProject = async () => {
     try {
-        const {data} = await api.get(`/api/user/project/${project.id}`)
-        setProject(data.project)
-    } catch (error:any) {
+      const { data } = await api.get(`/api/user/project/${project.id}`)
+      setProject(data.project)
+    } catch (error: any) {
       toast.error(error?.response?.data?.message || error.message)
       console.log(error)
     }
@@ -36,45 +37,57 @@ const Sidebar = ({
 
   const handleRollBack = async (versionId: string) => {
     try {
-      const confirm = window.confirm('Are you sure you want to roll back to this version? This action cannot be undone.')
-      if(!confirm) return;
-      setIsGenerating(true);
-      const {data} = await api.get(`/api/project/rollback/${project.id}/${versionId}`)
-      const {data:data2} = await api.get(`/api/user/project/${project.id}`) // fixed POST → GET
+      const confirm = window.confirm(
+        'Are you sure you want to roll back to this version? This action cannot be undone.'
+      )
+      if (!confirm) return
+
+      setIsGenerating(true)
+      const { data } = await api.get(
+        `/api/project/rollback/${project.id}/${versionId}`
+      )
+      const { data: data2 } = await api.get(
+        `/api/user/project/${project.id}`
+      )
+
       toast.success(data.message)
       setProject(data2.project)
-      setIsGenerating(false);
-    } catch (error:any) {
-      setIsGenerating(false);
+      setIsGenerating(false)
+    } catch (error: any) {
+      setIsGenerating(false)
       toast.error(error?.response?.data?.message || error.message)
       console.log(error)
     }
   }
 
   const handleRevisions = async (e: React.FormEvent) => {
-     e.preventDefault();
-     if (!input.trim()) return; // input validation fix
+    e.preventDefault()
+    if (!input.trim()) return
 
-     let interval: any; // TS interval fix
-     try {
-      setIsGenerating(true);
-      interval = setInterval(()=>{ fetchProject(); },10000)
+    let interval: NodeJS.Timeout
 
-      const {data} = await api.post(`/api/project/revision/${project.id}`,{
-           messages:input
-      })
+    try {
+      setIsGenerating(true)
+      interval = setInterval(() => {
+        fetchProject()
+      }, 10000)
 
-      fetchProject();
+      const { data } = await api.post(
+        `/api/project/revision/${project.id}`,
+        { messages: input }
+      )
+
+      fetchProject()
       toast.success(data.message)
       setInput('')
       clearInterval(interval)
-      setIsGenerating(false);
-     } catch (error:any) {
-      setIsGenerating(false);
-      toast.error(error?.response?.data?.message || error.message);
+      setIsGenerating(false)
+    } catch (error: any) {
+      setIsGenerating(false)
+      toast.error(error?.response?.data?.message || error.message)
       console.log(error)
       clearInterval(interval)
-     }
+    }
   }
 
   useEffect(() => {
@@ -83,7 +96,7 @@ const Sidebar = ({
     }
   }, [project.conversation.length, isGenerating])
 
-  return (  
+  return (
     <div
       className={`h-full sm:max-w-sm rounded-xl bg-gray-900 border-gray-800 transition-all ${
         isMenuOpen ? 'max-sm:w-0 overflow-hidden' : 'w-full'
@@ -180,8 +193,8 @@ const Sidebar = ({
 
               <div className="flex gap-1.5 h-full items-end">
                 <span className="size-2 rounded-full animate-bounce bg-gray-600" />
-                <span className="size-2 rounded-full animate-bounce bg-gray-600" style={{ animationDelay: '0.2s' }}/>
-                <span className="size-2 rounded-full animate-bounce bg-gray-600" style={{ animationDelay: '0.4s' }}/>
+                <span className="size-2 rounded-full animate-bounce bg-gray-600" style={{ animationDelay: '0.2s' }} />
+                <span className="size-2 rounded-full animate-bounce bg-gray-600" style={{ animationDelay: '0.4s' }} />
               </div>
             </div>
           )}
@@ -199,7 +212,11 @@ const Sidebar = ({
               className="flex-1 p-3 rounded-xl resize-none text-sm outline-none ring ring-gray-700 focus:ring-indigo-500 bg-gray-800 text-gray-100 placeholder-gray-400 transition-all"
               disabled={isGenerating}
             />
-            <button disabled={isGenerating || !input.trim()} type="submit" className='absolute bottom-2.5 right-2.5 rounded-full bg-linear-to-r from-indigo-500 to-indigo-600 disabled:opacity-60'>
+            <button
+              disabled={isGenerating || !input.trim()}
+              type="submit"
+              className="absolute bottom-2.5 right-2.5 rounded-full bg-linear-to-r from-indigo-500 to-indigo-600 disabled:opacity-60"
+            >
               {isGenerating ? (
                 <Loader2Icon className="size-7 p-1.5 animate-spin text-white" />
               ) : (
