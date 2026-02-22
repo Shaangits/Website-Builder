@@ -23,7 +23,7 @@ const Projects = () => {
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [isGenerating, setIsGenerating] = useState(true)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+ 
   const [isSaving, setIsSaving] = useState(false)
 
   // ⭐ fixes Better-Auth session flicker
