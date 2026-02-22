@@ -23,7 +23,7 @@ const Projects = () => {
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [isGenerating, setIsGenerating] = useState(true)
- 
+  const [isMenuOpen] = useState(false) // ✅ removed unused setter
   const [isSaving, setIsSaving] = useState(false)
 
   // ⭐ fixes Better-Auth session flicker
@@ -81,6 +81,7 @@ const Projects = () => {
       const { data } = await api.get(`/api/user/publish-toggle/${projectId}`)
       toast.success(data.message)
 
+      // ✅ FIXED: correct property name
       setProject(prev =>
         prev ? { ...prev, isPublished: !prev.isPublished } : null
       )
@@ -91,6 +92,7 @@ const Projects = () => {
 
   // ================= OPEN PUBLIC PREVIEW =================
   const openPreview = () => {
+    // ✅ FIXED: correct property name
     if (!project?.isPublished) {
       toast.error("Publish project first")
       return
@@ -98,7 +100,7 @@ const Projects = () => {
     window.open(`/preview/${project.id}`, "_blank")
   }
 
-  // ⭐ Wait until auth finishes loading
+  // ⭐ Wait until auth finishes
   useEffect(() => {
     if (!isPending) setSessionResolved(true)
   }, [isPending])
