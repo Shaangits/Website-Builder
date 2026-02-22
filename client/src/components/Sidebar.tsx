@@ -43,9 +43,11 @@ const Sidebar = ({
       if (!confirm) return
 
       setIsGenerating(true)
+
       const { data } = await api.get(
         `/api/project/rollback/${project.id}/${versionId}`
       )
+
       const { data: data2 } = await api.get(
         `/api/user/project/${project.id}`
       )
@@ -64,10 +66,12 @@ const Sidebar = ({
     e.preventDefault()
     if (!input.trim()) return
 
-    let interval: NodeJS.Timeout
+    // ✅ FIXED: browser-safe interval type
+    let interval: ReturnType<typeof setInterval>
 
     try {
       setIsGenerating(true)
+
       interval = setInterval(() => {
         fetchProject()
       }, 10000)
