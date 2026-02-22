@@ -66,8 +66,8 @@ const Sidebar = ({
     e.preventDefault()
     if (!input.trim()) return
 
-    // ✅ FIXED: browser-safe interval type
-    let interval: ReturnType<typeof setInterval>
+    // ✅ FIX: allow undefined
+    let interval: ReturnType<typeof setInterval> | undefined
 
     try {
       setIsGenerating(true)
@@ -84,13 +84,18 @@ const Sidebar = ({
       fetchProject()
       toast.success(data.message)
       setInput('')
-      clearInterval(interval)
+
+      // ✅ safe clear
+      if (interval) clearInterval(interval)
+
       setIsGenerating(false)
     } catch (error: any) {
       setIsGenerating(false)
       toast.error(error?.response?.data?.message || error.message)
       console.log(error)
-      clearInterval(interval)
+
+      // ✅ safe clear
+      if (interval) clearInterval(interval)
     }
   }
 
