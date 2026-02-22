@@ -1,4 +1,4 @@
-import  { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import type { Project } from "../types"
 import {
@@ -26,7 +26,7 @@ const Projects = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  // ⭐ NEW: fixes Better-Auth session flicker
+  // ⭐ fixes Better-Auth session flicker
   const [sessionResolved, setSessionResolved] = useState(false)
 
   const previewRef = useRef<ProjectPreviewRef>(null)
@@ -80,8 +80,9 @@ const Projects = () => {
     try {
       const { data } = await api.get(`/api/user/publish-toggle/${projectId}`)
       toast.success(data.message)
+
       setProject(prev =>
-        prev ? { ...prev, is_published: !prev.is_published } : null
+        prev ? { ...prev, isPublished: !prev.isPublished } : null
       )
     } catch (error: any) {
       toast.error(error?.response?.data?.message || error.message)
@@ -90,22 +91,22 @@ const Projects = () => {
 
   // ================= OPEN PUBLIC PREVIEW =================
   const openPreview = () => {
-    if (!project?.is_published) {
+    if (!project?.isPublished) {
       toast.error("Publish project first")
       return
     }
     window.open(`/preview/${project.id}`, "_blank")
   }
 
-  // ⭐ STEP 1: Wait until auth FINISHES loading at least once
+  // ⭐ Wait until auth finishes loading
   useEffect(() => {
     if (!isPending) setSessionResolved(true)
   }, [isPending])
 
-  // ⭐ STEP 2: Safe auth guard (NO MORE LOGIN TOAST BUG)
+  // ⭐ Safe auth guard
   useEffect(() => {
-    if (!sessionResolved) return          // wait until auth stabilises
-    if (authCheckedRef.current) return   // stop StrictMode double run
+    if (!sessionResolved) return
+    if (authCheckedRef.current) return
     authCheckedRef.current = true
 
     if (!session?.user) {
@@ -117,7 +118,7 @@ const Projects = () => {
     fetchProject()
   }, [sessionResolved, session?.user])
 
-  // ================= POLLING WHILE GENERATING =================
+  // ================= POLLING =================
   useEffect(() => {
     if (!project || project.current_code) return
     const interval = setInterval(fetchProject, 10000)
@@ -151,27 +152,38 @@ const Projects = () => {
         </div>
 
         <div className="flex gap-3">
-          <button onClick={saveProject} className="bg-gray-700 px-4 py-1.5 rounded flex items-center gap-2">
-            {isSaving ? <Loader2Icon className="animate-spin" size={16} /> : <SaveIcon size={16} />}
+          <button
+            onClick={saveProject}
+            className="bg-gray-700 px-4 py-1.5 rounded flex items-center gap-2"
+          >
+            {isSaving
+              ? <Loader2Icon className="animate-spin" size={16} />
+              : <SaveIcon size={16} />}
             Save
           </button>
 
-          <button onClick={openPreview} className="bg-gray-700 px-4 py-1.5 rounded flex items-center gap-2">
+          <button
+            onClick={openPreview}
+            className="bg-gray-700 px-4 py-1.5 rounded flex items-center gap-2"
+          >
             <EyeIcon size={16}/> Preview
           </button>
 
-          <button onClick={downloadCode} className="bg-blue-600 px-4 py-1.5 rounded flex items-center gap-2">
+          <button
+            onClick={downloadCode}
+            className="bg-blue-600 px-4 py-1.5 rounded flex items-center gap-2"
+          >
             <ArrowBigDownDashIcon size={16}/> Download
           </button>
 
           <button
             onClick={togglePublish}
             className={`px-4 py-1.5 rounded flex items-center gap-2 ${
-              project.is_published ? "bg-purple-700" : "bg-purple-600"
+              project.isPublished ? "bg-purple-700" : "bg-purple-600"
             }`}
           >
             <GlobeIcon size={16}/>
-            {project.is_published ? "Unpublish" : "Publish"}
+            {project.isPublished ? "Unpublish" : "Publish"}
           </button>
         </div>
       </div>
