@@ -23,7 +23,7 @@ app.use(cors(corsOptions))
 app.post('/api/stripe', express.raw({ type: 'application/json' }), stripeWebhook)
 
 // ✅ 🔥 CRITICAL FIX — Express v5 compatible wildcard
-app.all('/api/auth/*path', toNodeHandler(auth));
+app.use('/api/auth', toNodeHandler(auth));
 
 // ✅ JSON parser
 app.use(express.json({ limit: '50mb' }))
