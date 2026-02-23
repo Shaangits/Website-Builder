@@ -12,29 +12,33 @@ const app = express()
 const port = process.env.PORT || 3000
 
 const corsOptions = {
-  origin: process.env.TRUSTED_ORIGINS?.split(',') || [],
-  credentials: true,
+origin: process.env.TRUSTED_ORIGINS?.split(',') || [],
+credentials: true,
 }
 
-// ✅ CORS first
+// ✅ CORS FIRST
 app.use(cors(corsOptions))
 
 // ✅ Stripe raw body BEFORE json
-app.post('/api/stripe', express.raw({ type: 'application/json' }), stripeWebhook)
+app.post(
+'/api/stripe',
+express.raw({ type: 'application/json' }),
+stripeWebhook
+)
 
-// ✅ 🔥 CRITICAL FIX — Express v5 compatible wildcard
-app.all('/api/auth/:path(*)', toNodeHandler(auth));
+// ✅ ✅ FINAL — mount Better Auth as middleware (NO wildcards)
+app.use('/api/auth', toNodeHandler(auth))
 
-// ✅ JSON parser
+// ✅ JSON parser AFTER auth
 app.use(express.json({ limit: '50mb' }))
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Server is Live!')
+res.send('Server is Live!')
 })
 
 app.use('/api/user', userRouter)
 app.use('/api/project', projectRouter)
 
 app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`)
+console.log(`Server is running at http://localhost:${port}`)
 })
